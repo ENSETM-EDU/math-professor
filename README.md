@@ -29,10 +29,10 @@ Pour installer et lancer le projet localement :
 
 ```bash
 # Installation des dépendances
-npm install  # ou yarn
+yarn
 
 # Lancement en mode développement
-npm run dev  # ou yarn dev
+yarn dev 
 ```
 
 L'application sera accessible sur `http://localhost:5173`.
