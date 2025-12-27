@@ -1,56 +1,49 @@
-# 3D Avatar React Threejs
+# 🎓 Professeur de Mathématiques - Avatar 3D Interactif
 
-Welcome to the 3D Avatar React Threejs repository! This project aims to provide a seamless solution for integrating lifelike 3D avatars into your React applications using the power of Three.js.
+Ce projet est une application React immersive utilisant **Three.js** et **React Three Fiber (R3F)** pour créer un professeur de mathématiques virtuel. Il combine des animations 3D réalistes, un système de chat et un tableau blanc interactif pour l'enseignement.
 
-## Features
+## 🚀 Vue d'ensemble de l'implémentation
 
-- **Easy Integration**: Effortlessly incorporate customizable 3D avatars into your React projects.
-- **Immersive Experience**: Enhance user engagement with captivating 3D visuals and interactivity.
-- **Customization**: Tailor avatars to suit your project's needs with customizable features.
-- **Versatile Compatibility**: Compatible with a wide range of React applications and environments.
-- **Developer-Friendly**: Well-documented and easy-to-understand codebase for developers of all skill levels.
+L'architecture repose sur une séparation claire entre la scène 3D (R3F), la logique applicative (React hooks/state) et l'interface utilisateur (HTML/CSS).
 
-## Getting Started
+### 1. Composants Clés
 
-To get started with integrating 3D avatars into your React project, follow these simple steps:
+*   **`App.jsx`** : Le chef d'orchestre. Il gère l'état global (messages, contenu du tableau, état de l'avatar) et coordonne les interactions entre le chat et la scène 3D.
+*   **`Avatar.jsx`** : Intègre le modèle 3D (Ready Player Me). Il gère :
+    *   Le chargement des fichiers GLB (modèle + animations).
+    *   Les transitions fluides entre les états (`idle`, `talk`, `celebrate`).
+    *   Le **clignement d'yeux automatique** et le **suivi du regard** (l'avatar regarde la caméra).
+*   **`Experience.jsx`** : Définit l'environnement 3D. Il contient les lumières, le décor et surtout le **Whiteboard** (tableau blanc) qui affiche les équations et les QCM.
+*   **`Interface.jsx`** : L'interface de chat (UI) permettant à l'élève de poser des questions et de recevoir des explications.
+*   **`WelcomeUI.jsx` & `useWelcomeManager.js`** : Gèrent la séquence d'accueil. Si c'est la première visite, l'avatar se présente vocalement avec une animation synchronisée.
 
-1. **Clone the Repository**: `git clone https://github.com/your-username/3D-Avatar-React-Threejs.git`
-2. **Install Dependencies**: `cd 3D-Avatar-React-Threejs && npm install`
-3. **Start Development Server**: `npm start`
-4. **Explore and Customize**: Dive into the codebase and start creating and customizing your 3D avatars!
+### 2. Fonctionnalités Avancées
 
-## Examples
+*   **Animations Contextuelles** : L'avatar change d'animation selon la situation (il danse quand vous répondez juste à un QCM !).
+*   **Tableau Dynamique** : Le contenu du tableau se met à jour en temps réel selon les explications données dans le chat.
+*   **Système de QCM** : Une logique intégrée permet d'afficher des questions interactives directement sur le tableau blanc avec validation des réponses.
 
-Check out the `examples` directory for sample applications demonstrating different use cases and configurations of 3D avatars in React projects.
+## 🛠️ Installation et Lancement
 
-## Contributing
+Pour installer et lancer le projet localement :
 
-Contributions are welcome! Whether you find a bug, want to add a feature, or improve documentation, feel free to open an issue or submit a pull request.
+```bash
+# Installation des dépendances
+npm install  # ou yarn
 
-## License
-
-This project is licensed under the MIT License.
-
-
-
-To run the reposoitory
-```
-yarn
-yarn dev
+# Lancement en mode développement
+npm run dev  # ou yarn dev
 ```
 
-## Typing Animation:
-(![image](https://github.com/mahakPandeyOfficial/3D-Avatar-React-Threejs/assets/116765334/628dec2f-e7e3-4c90-a2ff-28477badfc35)
+L'application sera accessible sur `http://localhost:5173`.
 
-## Falling Animation:
-![image](https://github.com/mahakPandeyOfficial/3D-Avatar-React-Threejs/assets/116765334/af887a93-70c0-4cb4-880c-3e9937f3f2d2)
+## 💡 Guide pour compléter le projet
 
-## Standing Animation:
-![image](https://github.com/mahakPandeyOfficial/3D-Avatar-React-Threejs/assets/116765334/07da3959-8bb1-40e1-b072-942f2b3b80ca)
+Mes camarades, voici quelques pistes pour améliorer cette version :
+1.  **Intégration LLM** : Remplacer les réponses simulées dans `App.jsx` par un appel à une API (comme Gemini ou OpenAI).
+2.  **Synthèse Vocale (TTS)** : Utiliser l'API Web Speech ou ElevenLabs pour que l'avatar parle réellement à chaque message.
+3.  **Analyse d'Images** : Ajouter la possibilité d'uploader une photo d'exercice pour que le prof puisse l'analyser.
+4.  **Plus d'animations** : Ajouter des animations spécifiques pour l'explication (pointe du doigt vers le tableau).
 
-
-
-
-
-
-# math-professor
+---
+*Projet développé dans le cadre du module [Nom du Module/Cours].*
