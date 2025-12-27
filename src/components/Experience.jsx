@@ -1,9 +1,10 @@
 import { ContactShadows, Environment, OrbitControls, Sky, Html } from "@react-three/drei";
 import { Avatar } from "./Avatar";
+import { Qcm } from "./Qcm";
 import { useMemo } from "react";
 import * as THREE from "three";
 
-export const Experience = ({ state = "idle", boardContent }) => {
+export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
   return (
     <>
       <OrbitControls />
@@ -46,26 +47,53 @@ export const Experience = ({ state = "idle", boardContent }) => {
               position={[0, 0, 0.01]}
             >
               <div style={{
-                width: "500px",
-                height: "300px",
-                background: "white",
+                width: "800px",
+                height: "500px",
+                background: "transparent", // Made transparent
                 display: "flex",
                 flexDirection: "column",
-                justifyContent: "center",
+                justifyContent: "flex-start", // Always start from top now
                 alignItems: "center",
                 fontFamily: "'Outfit', sans-serif",
                 color: "#1e293b",
-                padding: "20px",
-                borderRadius: "10px",
-                border: "2px solid #e2e8f0"
+                padding: "20px 40px", // Reduced top padding
+                borderRadius: "0",
+                boxSizing: "border-box"
               }}>
-                <h2 style={{ margin: "0 0 15px 0", color: "#4f46e5", fontSize: "1.5rem" }}>{boardContent.title}</h2>
-                <div style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", whiteSpace: "pre-wrap" }}>
-                  {boardContent.equation}
-                </div>
-                <div style={{ marginTop: "15px", color: "#64748b", fontSize: "1rem" }}>
-                  {boardContent.description}
-                </div>
+                {boardContent.qcm ? (
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    transform: 'scale(1.3)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}>
+                    <Qcm
+                      question={boardContent.qcm.question}
+                      options={boardContent.qcm.options}
+                      flat={true}
+                      isLast={true}
+                      onAnswer={(ans) => {
+                        onSendMessage(ans, { type: "qcm_answer" });
+                      }}
+                      onNext={() => {
+                        // Clear board or move to next
+                        onSendMessage("NEXT_STEP");
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <h2 style={{ margin: "0 0 15px 0", color: "#4f46e5", fontSize: "2.5rem" }}>{boardContent.title}</h2>
+                    <div style={{ fontSize: "3.5rem", fontWeight: "bold", textAlign: "center", whiteSpace: "pre-wrap" }}>
+                      {boardContent.equation}
+                    </div>
+                    <div style={{ marginTop: "15px", color: "#64748b", fontSize: "1.5rem" }}>
+                      {boardContent.description}
+                    </div>
+                  </>
+                )}
               </div>
             </Html>
           </mesh>

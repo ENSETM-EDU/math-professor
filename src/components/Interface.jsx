@@ -1,44 +1,22 @@
-import { useState, useRef } from "react";
-import { Qcm } from "./Qcm";
+import { useState, useRef, useEffect } from "react";
 
-export const Interface = ({ onSendMessage }) => {
+export const Interface = ({ messages, onSendMessage }) => {
     const [inputValue, setInputValue] = useState("");
     const fileInputRef = useRef(null);
-    const [messages, setMessages] = useState([
-        {
-            text: "Bonjour ! Je suis votre professeur de mathématiques. Comment puis-je vous aider aujourd'hui ? Vous pouvez m'envoyer une photo de votre exercice ou une question.",
-            sender: "teacher",
-        },
-    ]);
+    const messagesEndRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     const handleSend = () => {
         if (inputValue.trim()) {
-            const newMsg = { text: inputValue, sender: "user" };
-            setMessages([...messages, newMsg]);
             onSendMessage(inputValue);
             setInputValue("");
-
-            // Mock response flow for the Lab Demo
-            setTimeout(() => {
-                setMessages(prev => [...prev, {
-                    text: "C'est une excellente question sur les équations. Je vais analyser cela...",
-                    sender: "teacher"
-                }]);
-
-                setTimeout(() => {
-                    setMessages(prev => [...prev, {
-                        text: "Voici l'explication : Pour résoudre x² + 2x + 1 = 0, on remarque que c'est une identité remarquable (x + 1)² = 0. Donc la solution est x = -1.",
-                        sender: "teacher",
-                        isMath: true
-                    }, {
-                        type: "qcm",
-                        question: "Quelle est la nature de x² + 2x + 1 ?",
-                        options: ["Une identité remarquable", "Un polynôme du 3ème degré", "Une fonction constante"],
-                        answer: "Une identité remarquable",
-                        sender: "teacher"
-                    }]);
-                }, 2000);
-            }, 1000);
         }
     };
 
@@ -58,39 +36,17 @@ export const Interface = ({ onSendMessage }) => {
                             key={index}
                             className={`message ${msg.sender}`}
                         >
-                            {msg.type === "qcm" ? (
-                                <div className="message-box" style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
-                                    <Qcm
-                                        question={msg.question}
-                                        options={msg.options}
-                                        onAnswer={(ans) => {
-                                            const isCorrect = ans === msg.answer;
-                                            setMessages(prev => [...prev, { text: `Ma réponse : ${ans}`, sender: "user" }]);
-
-                                            // Trigger animation based on answer
-                                            onSendMessage(isCorrect ? "CORRECT_ANSWER" : "WRONG_ANSWER");
-
-                                            setTimeout(() => {
-                                                setMessages(prev => [...prev, {
-                                                    text: isCorrect ? "Bravo ! C'est exactement ça. Tu as bien compris le concept." : "Pas tout à fait. Réfléchis encore : l'identité (x+1)² est le résultat de x² + 2x + 1.",
-                                                    sender: "teacher"
-                                                }]);
-                                            }, 1000);
-                                        }}
-                                    />
-                                </div>
-                            ) : (
-                                <div className="message-box">
-                                    {msg.text}
-                                    {msg.isMath && (
-                                        <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(79, 70, 229, 0.05)', borderRadius: '8px', borderLeft: '4px solid #4f46e5' }}>
-                                            <small style={{ color: '#64748b' }}>Génération du QCM en cours...</small>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                            <div className="message-box">
+                                {msg.text}
+                                {msg.isMath && (
+                                    <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(79, 70, 229, 0.05)', borderRadius: '8px', borderLeft: '4px solid #4f46e5' }}>
+                                        <small style={{ color: '#64748b' }}>Génération du QCM sur le tableau...</small>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))}
+                    <div ref={messagesEndRef} />
                 </div>
             </div>
 

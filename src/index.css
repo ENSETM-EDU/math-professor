@@ -94,7 +94,7 @@ canvas {
   overflow-y: auto;
   padding-right: 0.5rem;
   pointer-events: auto;
-  max-height: 60vh;
+  max-height: 35vh; /* Reduced to avoid covering the whiteboard */
 }
 
 .message {
