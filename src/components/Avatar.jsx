@@ -15,7 +15,9 @@ export function Avatar({ state = "idle", ...props }) {
   // 2. Load animations (GLB format)
   const { animations: idleAnimation } = useGLTF('animations/F_Standing_Idle_001.glb');
   const { animations: idleVariationAnimation } = useGLTF('animations/F_Standing_Idle_Variations_001.glb');
-  const { animations: talkAnimation } = useGLTF('animations/F_Talking_Variations_001.glb');
+  const { animations: talkAnimation1 } = useGLTF('animations/F_Talking_Variations_001.glb');
+  const { animations: talkAnimation2 } = useGLTF('animations/F_Talking_Variations_003.glb');
+  const { animations: talkAnimation3 } = useGLTF('animations/F_Talking_Variations_005.glb');
   const { animations: celebrateAnimation } = useGLTF('animations/F_Dances_001.glb');
 
   // 3. Animation Registry / Setup
@@ -27,36 +29,48 @@ export function Avatar({ state = "idle", ...props }) {
     const idleVar = idleVariationAnimation[0].clone();
     idleVar.name = "idle_variation";
 
-    const talk = talkAnimation[0].clone();
-    talk.name = "talk";
+    const talk1 = talkAnimation1[0].clone();
+    talk1.name = "talk_1";
+
+    const talk2 = talkAnimation2[0].clone();
+    talk2.name = "talk_2";
+
+    const talk3 = talkAnimation3[0].clone();
+    talk3.name = "talk_3";
 
     const celebrate = celebrateAnimation[0].clone();
     celebrate.name = "celebrate";
 
-    return [idle, idleVar, talk, celebrate];
-  }, [idleAnimation, idleVariationAnimation, talkAnimation, celebrateAnimation]);
+    return [idle, idleVar, talk1, talk2, talk3, celebrate];
+  }, [idleAnimation, idleVariationAnimation, talkAnimation1, talkAnimation2, talkAnimation3, celebrateAnimation]);
 
   const { actions, names } = useAnimations(animations, group);
 
   // 4. State to Animation mapping
   useEffect(() => {
+    console.log("Avatar State:", state);
     let currentAction = "idle";
 
     if (state === "talk") {
-      currentAction = "talk";
+      const talkActions = ["talk_1", "talk_2", "talk_3"];
+      currentAction = talkActions[Math.floor(Math.random() * talkActions.length)];
     } else if (state === "celebrate") {
       currentAction = "celebrate";
-    } else {
-      currentAction = "idle";
     }
 
     if (actions[currentAction]) {
-      // Transition with fade
-      actions[currentAction].reset().fadeIn(0.5).play();
+      // Fade out all actions except the base idle and current one
+      Object.keys(actions).forEach((key) => {
+        if (key !== currentAction && key !== "idle") {
+          actions[key].fadeOut(0.3);
+        }
+      });
+
+      actions[currentAction].reset().fadeIn(0.3).play();
 
       return () => {
         if (actions[currentAction]) {
-          actions[currentAction].fadeOut(0.5);
+          actions[currentAction].fadeOut(0.3);
         }
       };
     }
@@ -68,13 +82,11 @@ export function Avatar({ state = "idle", ...props }) {
 
     let timeout;
     const playVariation = () => {
-      // Play variation every 5-10 seconds
       timeout = setTimeout(() => {
         if (state === "idle" && actions["idle_variation"]) {
           actions["idle_variation"].reset().fadeIn(0.5).play();
-          // After variation ends (approx 3-4s), fade back to main idle
           setTimeout(() => {
-            if (state === "idle") {
+            if (state === "idle" && actions["idle_variation"]) {
               actions["idle_variation"].fadeOut(0.5);
             }
           }, 3000);
@@ -87,13 +99,61 @@ export function Avatar({ state = "idle", ...props }) {
     return () => clearTimeout(timeout);
   }, [state, actions]);
 
-  // 6. BLINKING & LOOKAT LOGIC
+  // 6. BLINKING, MOUTH & LOOKAT LOGIC
   const [blink, setBlink] = useState(false);
 
-  useFrame((stateFrame) => {
-    // Head follow
-    if (group.current.getObjectByName("Head")) {
-      group.current.getObjectByName("Head").lookAt(stateFrame.camera.position);
+  useFrame((stateFrame, delta) => {
+    // Force Head and Neck to follow camera
+    const head = group.current.getObjectByName("Head");
+    const neck = group.current.getObjectByName("Neck");
+
+    if (head) {
+      // Create a target position that is exactly where the camera is
+      const target = new THREE.Vector3().copy(stateFrame.camera.position);
+
+      // LookAt logic for the head
+      head.lookAt(target);
+
+      // If we want it to be slightly smoother but still "always" pointing
+      // head.quaternion.slerp(targetRotation, 0.2); 
+    }
+
+    if (neck) {
+      // Neck follows camera but with less intensity for a natural feel
+      const target = new THREE.Vector3().copy(stateFrame.camera.position);
+      // We use a dummy object to calculate the lookAt rotation for the neck
+      // so we can limit the intensity
+      const dummy = new THREE.Object3D();
+      dummy.position.copy(neck.getWorldPosition(new THREE.Vector3()));
+      dummy.lookAt(target);
+      neck.quaternion.slerp(dummy.quaternion, 0.1);
+    }
+
+    // Procedural Mouth Movement when talking
+    // Wolves RPM models use Wolf3D_Head or Wolf3D_Avatar for head morphs
+    const headNode = nodes.Wolf3D_Head || nodes.Wolf3D_Avatar;
+    if (state === "talk" && headNode && headNode.morphTargetDictionary) {
+      const mouthOpenIdx = headNode.morphTargetDictionary["mouthOpen"];
+      if (mouthOpenIdx !== undefined) {
+        const influence = (Math.sin(stateFrame.clock.elapsedTime * 15) + 1) / 2 * 0.4;
+        headNode.morphTargetInfluences[mouthOpenIdx] = influence;
+
+        if (nodes.Wolf3D_Teeth) {
+          const teethMouthOpenIdx = nodes.Wolf3D_Teeth.morphTargetDictionary["mouthOpen"];
+          if (teethMouthOpenIdx !== undefined) {
+            nodes.Wolf3D_Teeth.morphTargetInfluences[teethMouthOpenIdx] = influence;
+          }
+        }
+      }
+    } else if (headNode && headNode.morphTargetDictionary) {
+      const mouthOpenIdx = headNode.morphTargetDictionary["mouthOpen"];
+      if (mouthOpenIdx !== undefined) {
+        headNode.morphTargetInfluences[mouthOpenIdx] = THREE.MathUtils.lerp(
+          headNode.morphTargetInfluences[mouthOpenIdx],
+          0,
+          0.1
+        );
+      }
     }
 
     // Automatic Blinking
@@ -159,4 +219,6 @@ useGLTF.preload('models/663e84d22bf045a79933e198.glb');
 useGLTF.preload('animations/F_Standing_Idle_001.glb');
 useGLTF.preload('animations/F_Standing_Idle_Variations_001.glb');
 useGLTF.preload('animations/F_Talking_Variations_001.glb');
+useGLTF.preload('animations/F_Talking_Variations_003.glb');
+useGLTF.preload('animations/F_Talking_Variations_005.glb');
 useGLTF.preload('animations/F_Dances_001.glb');

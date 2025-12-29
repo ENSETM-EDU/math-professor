@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { LatexRenderer } from "./LatexRenderer";
 
 export const Interface = ({ messages, onSendMessage }) => {
     const [inputValue, setInputValue] = useState("");
@@ -20,6 +21,13 @@ export const Interface = ({ messages, onSendMessage }) => {
         }
     };
 
+    const handleFileUpload = (event) => {
+        const file = event.target.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            onSendMessage(null, { type: "image", file });
+        }
+    };
+
     return (
         <div className="overlay">
             {/* Header */}
@@ -37,10 +45,104 @@ export const Interface = ({ messages, onSendMessage }) => {
                             className={`message ${msg.sender}`}
                         >
                             <div className="message-box">
-                                {msg.text}
-                                {msg.isMath && (
-                                    <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(79, 70, 229, 0.05)', borderRadius: '8px', borderLeft: '4px solid #4f46e5' }}>
-                                        <small style={{ color: '#64748b' }}>Génération du QCM sur le tableau...</small>
+                                {msg.image && msg.sender === "user" && (
+                                    <img
+                                        src={msg.image}
+                                        alt="Uploaded"
+                                        style={{
+                                            maxWidth: '300px',
+                                            maxHeight: '300px',
+                                            borderRadius: '8px',
+                                            marginBottom: '10px'
+                                        }}
+                                    />
+                                )}
+                                {msg.text && <LatexRenderer text={msg.text} />}
+                                {msg.showPracticeButtons && (
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '10px',
+                                        marginTop: '15px',
+                                        flexWrap: 'wrap'
+                                    }}>
+                                        <button
+                                            onClick={() => {
+                                                onSendMessage("Oui, je veux m'entraîner !", {
+                                                    type: "start_exercises",
+                                                    exercises: msg.exercisesData
+                                                });
+                                            }}
+                                            style={{
+                                                padding: '10px 20px',
+                                                background: '#4f46e5',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                fontWeight: '500'
+                                            }}
+                                        >
+                                            Oui, c'est parti !
+                                        </button>
+                                        <button
+                                            onClick={() => onSendMessage("Non merci", {})}
+                                            style={{
+                                                padding: '10px 20px',
+                                                background: '#64748b',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                fontWeight: '500'
+                                            }}
+                                        >
+                                            Non merci
+                                        </button>
+                                    </div>
+                                )}
+                                {msg.showNextQuestionButtons && (
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '10px',
+                                        marginTop: '15px',
+                                        flexWrap: 'wrap'
+                                    }}>
+                                        <button
+                                            onClick={() => onSendMessage("yes", {
+                                                type: "next_question",
+                                                exercises: msg.exercisesData,
+                                                nextIndex: msg.nextIndex
+                                            })}
+                                            style={{
+                                                padding: '10px 20px',
+                                                background: '#10b981',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                fontWeight: '500'
+                                            }}
+                                        >
+                                            Oui
+                                        </button>
+                                        <button
+                                            onClick={() => onSendMessage("no", {
+                                                type: "next_question",
+                                                exercises: msg.exercisesData,
+                                                nextIndex: msg.nextIndex
+                                            })}
+                                            style={{
+                                                padding: '10px 20px',
+                                                background: '#ef4444',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                fontWeight: '500'
+                                            }}
+                                        >
+                                            Non
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -61,11 +163,14 @@ export const Interface = ({ messages, onSendMessage }) => {
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
                         </button>
-                        <input type="file" ref={fileInputRef} className="hidden" style={{ display: 'none' }} accept="image/*,.pdf" />
-
-                        <button className="icon-btn" title="Voice Input">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
-                        </button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            style={{ display: 'none' }}
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                        />
                     </div>
 
                     <input

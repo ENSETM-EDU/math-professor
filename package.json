@@ -12,9 +12,11 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.4.2",
     "@types/three": "^0.182.0",
+    "katex": "^0.16.27",
     "leva": "^0.10.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-katex": "^3.1.0",
     "three": "^0.182.0"
   },
   "devDependencies": {

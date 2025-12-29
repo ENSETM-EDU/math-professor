@@ -1,12 +1,19 @@
 import { useState } from "react";
+import { InlineMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 export const Qcm = ({ question, options, onAnswer, onNext, flat = false, isLast = true }) => {
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
 
+  // Clean LaTeX delimiters from text
+  const cleanText = (text) => {
+    return text.replace(/\$\$/g, '').replace(/\$/g, '');
+  };
+
   return (
     <div className={`qcm-card ${flat ? 'flat' : ''}`}>
-      <h3 className="qcm-question">{question}</h3>
+      <h3 className="qcm-question">{cleanText(question)}</h3>
       <div className="qcm-options">
         {options.map((opt, i) => (
           <button
@@ -19,7 +26,7 @@ export const Qcm = ({ question, options, onAnswer, onNext, flat = false, isLast 
               onAnswer(opt);
             }}
           >
-            {opt}
+            {cleanText(opt)}
           </button>
         ))}
       </div>

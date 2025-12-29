@@ -3,6 +3,8 @@ import { Avatar } from "./Avatar";
 import { Qcm } from "./Qcm";
 import { useMemo } from "react";
 import * as THREE from "three";
+import { BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
   return (
@@ -64,30 +66,91 @@ export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
                   <div style={{
                     width: '100%',
                     height: '100%',
-                    transform: 'scale(1.3)',
+                    transform: boardContent.qcm.type === "equation_quiz" ? 'scale(1.1)' : 'scale(1.3)',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    alignItems: 'center'
                   }}>
-                    <Qcm
-                      question={boardContent.qcm.question}
-                      options={boardContent.qcm.options}
-                      flat={true}
-                      isLast={true}
-                      onAnswer={(ans) => {
-                        onSendMessage(ans, { type: "qcm_answer" });
-                      }}
-                      onNext={() => {
-                        // Clear board or move to next
-                        onSendMessage("NEXT_STEP");
-                      }}
-                    />
+                    {boardContent.qcm.type === "equation_quiz" ? (
+                      // Display equation with multiple choice answers
+                      <div style={{
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '20px'
+                      }}>
+                        <div style={{
+                          fontSize: '3rem',
+                          fontWeight: 'bold',
+                          color: '#4f46e5',
+                          marginBottom: '10px'
+                        }}>
+                          <BlockMath math={boardContent.qcm.equation.replace(/\$/g, '')} />
+                        </div>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '15px',
+                          width: '80%'
+                        }}>
+                          {boardContent.qcm.options.map((option, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => onSendMessage(option, { type: "qcm_answer" })}
+                              style={{
+                                padding: '15px 25px',
+                                fontSize: '1.2rem',
+                                background: '#f1f5f9',
+                                border: '3px solid #cbd5e1',
+                                borderRadius: '12px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                fontWeight: '600',
+                                color: '#1e293b'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = '#dbeafe';
+                                e.target.style.borderColor = '#3b82f6';
+                                e.target.style.transform = 'scale(1.05)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = '#f1f5f9';
+                                e.target.style.borderColor = '#cbd5e1';
+                                e.target.style.transform = 'scale(1)';
+                              }}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <Qcm
+                        question={boardContent.qcm.question}
+                        options={boardContent.qcm.options}
+                        flat={true}
+                        isLast={true}
+                        onAnswer={(ans) => {
+                          onSendMessage(ans, { type: "qcm_answer" });
+                        }}
+                        onNext={() => {
+                          // Clear board or move to next
+                          onSendMessage("NEXT_STEP");
+                        }}
+                      />
+                    )}
                   </div>
                 ) : (
                   <>
                     <h2 style={{ margin: "0 0 15px 0", color: "#4f46e5", fontSize: "2.5rem" }}>{boardContent.title}</h2>
-                    <div style={{ fontSize: "3.5rem", fontWeight: "bold", textAlign: "center", whiteSpace: "pre-wrap" }}>
-                      {boardContent.equation}
+                    <div style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", whiteSpace: "pre-wrap" }}>
+                      {boardContent.equation && boardContent.equation.trim() !== '' ? (
+                        <BlockMath math={boardContent.equation.replace(/^\$\$?|\$\$?$/g, '')} />
+                      ) : (
+                        boardContent.equation
+                      )}
                     </div>
                     <div style={{ marginTop: "15px", color: "#64748b", fontSize: "1.5rem" }}>
                       {boardContent.description}
