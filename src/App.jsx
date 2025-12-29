@@ -17,9 +17,9 @@ function App() {
 
   const [manualState, setManualState] = useState(null);
   const [boardContent, setBoardContent] = useState({
-    title: "Leçon du jour : Algèbre",
-    equation: "x² + 2x + 1 = 0",
-    description: "Identités Remarquables",
+    title: "",
+    equation: "On va étudier quoi aujourd'hui ?",
+    description: "",
     qcm: null
   });
 
@@ -76,47 +76,18 @@ function App() {
       setTimeout(() => {
         const feedbackText = isCorrect
           ? "Bravo ! C'est exactement ça. Tu as bien compris !"
-          : `Pas tout à fait. La bonne réponse est : ${boardContent.qcm?.answer || boardContent.qcm?.correctAnswer}`;
+          : `Pas tout à fait. La bonne réponse est : ${boardContent.qcm?.correctAnswer || boardContent.qcm?.answer}`;
 
         setMessages(prev => [...prev, {
           text: feedbackText,
           sender: "teacher"
         }]);
-
         speakText(feedbackText, {
           onStart: () => setManualState("talk"),
-          onEnd: () => {
-            setManualState(null);
-
-            // If we are in an exercise sequence, offer the next one
-            if (isAnsweringExercise && currentExercises.length > 0) {
-              const nextIndex = currentExerciseIndex + 1;
-              if (nextIndex < currentExercises.length) {
-                setTimeout(() => {
-                  setMessages(prev => [...prev, {
-                    text: "Voulez-vous passer à la question suivante ?",
-                    sender: "teacher",
-                    showNextQuestionButtons: true,
-                    exercisesData: currentExercises,
-                    nextIndex: nextIndex
-                  }]);
-                }, 1000);
-              } else {
-                // End of series
-                setIsAnsweringExercise(false);
-                setBoardContent(prev => ({ ...prev, qcm: null }));
-                setTimeout(() => {
-                  const endText = "Excellent ! Vous avez terminé toute la série d'exercices. Avez-vous d'autres questions ?";
-                  setMessages(prev => [...prev, { text: endText, sender: "teacher" }]);
-                  speakText(endText, {
-                    onStart: () => setManualState("talk"),
-                    onEnd: () => setManualState(null)
-                  });
-                }, 1000);
-              }
-            }
-          }
+          onEnd: () => setManualState(null)
         });
+        setIsAnsweringExercise(false);
+        setBoardContent(prev => ({ ...prev, qcm: null, equation: null }));
       }, 1000);
       return;
     }
@@ -126,32 +97,35 @@ function App() {
       return;
     }
 
-    // Handle direct start of exercises from button
-    if (data?.type === "start_exercises" && data.exercises) {
-      setMessages(prev => [...prev, { text: msg, sender: "user" }]);
-      setCurrentExercises(data.exercises);
-      setCurrentExerciseIndex(0);
-      setIsAnsweringExercise(true);
+    // Handle practice choice (equation with answers)
+    if (data?.type === "practice_choice" && data.equation) {
+      console.log("Practice choice with equation:", data.equation);
 
-      const exercise = data.exercises[0];
+      // Display equation on board with answer options
+      const equationData = {
+        type: "equation_quiz",
+        equation: data.equation.question,
+        options: data.equation.options,
+        correctAnswer: data.equation.correctAnswer
+      };
 
-      // Update board with QCM
+      console.log("Setting board content:", equationData);
+
       setBoardContent(prev => ({
         ...prev,
-        title: `Question 1 (${exercise.difficulty})`,
-        equation: exercise.problem,
-        description: "Choisissez la bonne réponse",
-        qcm: {
-          type: "qcm",
-          question: exercise.problem,
-          options: exercise.options,
-          answer: exercise.answer
-        }
+        equation: data.equation.question,
+        description: "Trouvez la solution",
+        qcm: equationData
       }));
 
-      const text = `C'est parti ! Voici votre premier exercice (${exercise.difficulty}). Regardez le tableau !`;
-      setMessages(prev => [...prev, { text, sender: "teacher" }]);
-      speakText(text, {
+      setIsAnsweringExercise(true);
+      setMessages(prev => [...prev, {
+        text: "Résolvez l'équation affichée sur le tableau et choisissez la bonne réponse.",
+        sender: "teacher"
+      }]);
+
+      // Speak the equation
+      speakText(`Résolvez l'équation: ${data.equation.question}`, {
         onStart: () => setManualState("talk"),
         onEnd: () => setManualState(null)
       });
@@ -161,27 +135,18 @@ function App() {
     // Handle next question request
     if (data?.type === "next_question" && data.exercises && data.nextIndex !== undefined) {
       if (msg === "yes") {
-        const nextIndex = data.nextIndex;
-        const nextExercise = data.exercises[nextIndex];
-        setCurrentExerciseIndex(nextIndex);
+        const nextExercise = data.exercises[data.nextIndex];
+        const cleanProblem = nextExercise.problem.replace(/\$\$/g, '').replace(/\$/g, '').trim();
 
-        // Update board with next QCM
-        setBoardContent(prev => ({
-          ...prev,
-          title: `Question ${nextIndex + 1} (${nextExercise.difficulty})`,
-          equation: nextExercise.problem,
-          description: "Au suivant !",
-          qcm: {
-            type: "qcm",
-            question: nextExercise.problem,
-            options: nextExercise.options,
-            answer: nextExercise.answer
-          }
-        }));
+        setCurrentExerciseIndex(data.nextIndex);
 
-        const text = `Voici la question suivante, niveau ${nextExercise.difficulty}.`;
-        setMessages(prev => [...prev, { text, sender: "teacher" }]);
-        speakText(text, {
+        setMessages(prev => [...prev, {
+          text: `Question ${data.nextIndex + 1} (${nextExercise.difficulty}) :\n\n${cleanProblem}`,
+          sender: "teacher"
+        }]);
+
+
+        speakText(`Question suivante, niveau ${nextExercise.difficulty}: ${cleanProblem}`, {
           onStart: () => setManualState("talk"),
           onEnd: () => setManualState(null)
         });
@@ -191,7 +156,6 @@ function App() {
           sender: "teacher"
         }]);
         setIsAnsweringExercise(false);
-        setBoardContent(prev => ({ ...prev, qcm: null }));
         setCurrentExercises([]);
       }
       return;
@@ -410,10 +374,9 @@ function App() {
           // Offer to practice with an equation
           setTimeout(() => {
             setMessages(prev => [...prev, {
-              text: "Voulez-vous vous entraîner avec quelques exercices ?",
+              text: "Voulez-vous vous entraîner avec une équation ?",
               sender: "teacher",
-              showPracticeButtons: true,
-              exercisesData: response.exercises
+              showPracticeButtons: true
             }]);
           }, 2000);
         }

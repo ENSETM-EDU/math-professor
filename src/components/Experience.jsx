@@ -143,19 +143,40 @@ export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
                     )}
                   </div>
                 ) : (
-                  <>
-                    <h2 style={{ margin: "0 0 15px 0", color: "#4f46e5", fontSize: "2.5rem" }}>{boardContent.title}</h2>
-                    <div style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", whiteSpace: "pre-wrap" }}>
+                  <div style={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}>
+                    {boardContent.title && (
+                      <h2 style={{ margin: "0 0 20px 0", color: "#4f46e5", fontSize: "2.5rem" }}>{boardContent.title}</h2>
+                    )}
+
+                    <div style={{
+                      fontSize: (boardContent.title || boardContent.description) ? "2.2rem" : "3rem",
+                      fontWeight: "bold",
+                      color: "#1e293b",
+                      whiteSpace: "pre-wrap",
+                      width: "100%"
+                    }}>
                       {boardContent.equation && boardContent.equation.trim() !== '' ? (
-                        <BlockMath math={boardContent.equation.replace(/^\$\$?|\$\$?$/g, '')} />
-                      ) : (
-                        boardContent.equation
-                      )}
+                        (boardContent.equation.includes('$') || boardContent.equation.includes('\\')) ? (
+                          <BlockMath math={boardContent.equation.replace(/^\$\$?|\$\$?$/g, '')} />
+                        ) : (
+                          boardContent.equation
+                        )
+                      ) : null}
                     </div>
-                    <div style={{ marginTop: "15px", color: "#64748b", fontSize: "1.5rem" }}>
-                      {boardContent.description}
-                    </div>
-                  </>
+
+                    {boardContent.description && (
+                      <div style={{ marginTop: "20px", color: "#64748b", fontSize: "1.5rem" }}>
+                        {boardContent.description}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </Html>

@@ -66,11 +66,58 @@ export const Interface = ({ messages, onSendMessage }) => {
                                         flexWrap: 'wrap'
                                     }}>
                                         <button
-                                            onClick={() => {
-                                                onSendMessage("Oui, je veux m'entraîner !", {
-                                                    type: "start_exercises",
-                                                    exercises: msg.exercisesData
-                                                });
+                                            onClick={async () => {
+                                                try {
+                                                    console.log("Generating equation...");
+                                                    // Generate equation with answers
+                                                    const response = await fetch('http://localhost:8000/api/process-problem', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            input: `Tu DOIS répondre UNIQUEMENT avec un JSON valide, sans texte avant ou après. Format EXACT:
+{
+  "question": "$2x + 5 = 11$",
+  "options": ["x = 3", "x = 6", "x = -3", "x = 8"],
+  "correctAnswer": "x = 3"
+}
+
+Génère une équation mathématique simple avec 4 options de réponse. Une seule option est correcte. Utilise TOUJOURS le format LaTeX avec $ pour les équations. Réponds UNIQUEMENT avec le JSON, rien d'autre.`,
+                                                            isImage: false,
+                                                            history: []
+                                                        })
+                                                    });
+
+                                                    if (!response.ok) {
+                                                        console.error("API error:", response.status);
+                                                        const errorData = await response.text();
+                                                        console.error("Error details:", errorData);
+                                                        return;
+                                                    }
+
+                                                    const data = await response.json();
+                                                    console.log("Received data:", data);
+
+                                                    // Try to parse equation from explanation
+                                                    if (data && data.explanation) {
+                                                        console.log("Explanation:", data.explanation);
+                                                        const jsonMatch = data.explanation.match(/\{[\s\S]*\}/);
+                                                        console.log("JSON match:", jsonMatch);
+                                                        if (jsonMatch) {
+                                                            const equation = JSON.parse(jsonMatch[0]);
+                                                            console.log("Parsed equation:", equation);
+                                                            onSendMessage("exercices", {
+                                                                type: "practice_choice",
+                                                                equation: equation
+                                                            });
+                                                        } else {
+                                                            console.error("No JSON found in explanation");
+                                                        }
+                                                    } else {
+                                                        console.error("No explanation in response");
+                                                    }
+                                                } catch (e) {
+                                                    console.error("Failed to generate equation:", e);
+                                                }
                                             }}
                                             style={{
                                                 padding: '10px 20px',
@@ -82,7 +129,7 @@ export const Interface = ({ messages, onSendMessage }) => {
                                                 fontWeight: '500'
                                             }}
                                         >
-                                            Oui, c'est parti !
+                                            Oui, une équation !
                                         </button>
                                         <button
                                             onClick={() => onSendMessage("Non merci", {})}
