@@ -74,7 +74,7 @@ export function Avatar({ state = "idle", ...props }) {
           actions["idle_variation"].reset().fadeIn(0.5).play();
           // After variation ends (approx 3-4s), fade back to main idle
           setTimeout(() => {
-            if (state === "idle") {
+            if (state === "idle" && actions["idle_variation"]) {
               actions["idle_variation"].fadeOut(0.5);
             }
           }, 3000);
