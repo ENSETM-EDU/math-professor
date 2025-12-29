@@ -15,6 +15,8 @@ class HistoryMessage(BaseModel):
 class Exercise(BaseModel):
     difficulty: str
     problem: str
+    options: List[str] = []
+    correctAnswer: str = ""
 
 
 class AIResponse(BaseModel):

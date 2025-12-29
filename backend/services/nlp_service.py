@@ -39,8 +39,9 @@ DIRECTIVES :
 1. LaTeX obligatoire : Utilise $...$ pour l'inline et $$...$$ pour les blocs.
 2. Langue : Français uniquement.
 3. Structure : Décompose toujours tes solutions en étapes claires.
-4. Exercices : Propose TOUJOURS 3 exercices de difficulté croissante (facile, moyen, difficile).
-5. IMPORTANT: N'utilise JAMAIS d'emojis.
+4. Exercices : Propose TOUJOURS 3 exercices de type QCM de difficulté croissante (facile, moyen, difficile).
+5. IMPORTANT: Chaque exercice DOIT être un QCM avec 4 options et une seule bonne réponse.
+6. IMPORTANT: N'utilise JAMAIS d'emojis.
 
 RÉPONSE FORMAT JSON OBLIGATOIRE :
 Tu DOIS répondre UNIQUEMENT avec un JSON valide suivant ce format exact:
@@ -49,9 +50,13 @@ Tu DOIS répondre UNIQUEMENT avec un JSON valide suivant ce format exact:
     "solution": ["Étape 1 de résolution", "Étape 2", "..."],
     "explanation": "Explication pédagogique globale",
     "exercises": [
-        {"difficulty": "facile", "problem": "Problème 1 avec LaTeX $...$"},
-        {"difficulty": "moyen", "problem": "Problème 2 avec LaTeX $...$"},
-        {"difficulty": "difficile", "problem": "Problème 3 avec LaTeX $...$"}
+        {
+            "difficulty": "facile", 
+            "problem": "Problème 1 avec LaTeX $...$",
+            "options": ["Choix A", "Choix B", "Choix C", "Choix D"],
+            "correctAnswer": "Choix A"
+        },
+        ... (pareil pour moyen et difficile)
     ],
     "followUp": "Une question pour vérifier la compréhension de l'élève"
 }"""

@@ -13,6 +13,8 @@ async def extract_latex_from_image(image: VisionData) -> str:
     # Create the prompt
     prompt = "Agis comme un expert OCR mathématique. Extrais l'équation ou le problème de cette image et convertis-le en LaTeX pur. Ne renvoie QUE le code LaTeX sans texte autour."
     
+    print(f"Vision request: mime={image.mimeType}, data_len={len(image.data)}")
+    
     # Generate content with image
     chat_completion = client.chat.completions.create(
         messages=[
@@ -29,7 +31,7 @@ async def extract_latex_from_image(image: VisionData) -> str:
                 ],
             }
         ],
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
+        model="llama-3.2-11b-vision-preview",
     )
     
     return chat_completion.choices[0].message.content.strip() if chat_completion.choices[0].message.content else ""

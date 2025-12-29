@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
-export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
+export const Experience = ({ state = "idle", boardContent, onSendMessage, isMobile }) => {
   return (
     <>
       <OrbitControls />
@@ -16,13 +16,13 @@ export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
       <group position={[0, -1, 0]}>
         <ContactShadows opacity={1} scale={10} blur={1} far={10} resolution={256} color="#000000" />
 
-        {/* Avatar - Shifted to the right and back */}
-        <group position={[1.5, 0, -1]}>
+        {/* Avatar - Front and right on mobile, far right on desktop */}
+        <group position={isMobile ? [1, -0.4, 1.5] : [1.5, 0, -1]}>
           <Avatar state={state} />
         </group>
 
         {/* Lab Desk - Positioned under the avatar */}
-        <group position={[1.5, 0, -1]}>
+        <group position={isMobile ? [1, -0.4, 1.5] : [1.5, 0, -1]}>
           <mesh position={[0, 0.4, 0.6]}>
             <boxGeometry args={[1.5, 0.05, 1]} />
             <meshStandardMaterial color="#4a3728" roughness={0.5} />
@@ -37,20 +37,20 @@ export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
           </mesh>
         </group>
 
-        {/* Whiteboard / Screen - Shifted to the left */}
-        <group position={[-1.2, 1.5, -0.5]}>
+        {/* Whiteboard / Screen - Back and centered on mobile, left on desktop */}
+        <group position={isMobile ? [0, 1.5, -0.5] : [-1.2, 1.5, -0.5]}>
           <mesh>
             <planeGeometry args={[3.2, 2]} />
             <meshStandardMaterial color="white" />
 
             <Html
               transform
-              distanceFactor={1.2}
+              distanceFactor={isMobile ? 1 : 1.2}
               position={[0, 0, 0.01]}
             >
               <div style={{
-                width: "800px",
-                height: "500px",
+                width: isMobile ? "600px" : "800px",
+                height: isMobile ? "400px" : "500px",
                 background: "transparent", // Made transparent
                 display: "flex",
                 flexDirection: "column",
@@ -58,9 +58,10 @@ export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
                 alignItems: "center",
                 fontFamily: "'Outfit', sans-serif",
                 color: "#1e293b",
-                padding: "20px 40px", // Reduced top padding
+                padding: isMobile ? "10px 20px" : "20px 40px", // Reduced top padding
                 borderRadius: "0",
-                boxSizing: "border-box"
+                boxSizing: "border-box",
+                overflow: 'hidden'
               }}>
                 {boardContent.qcm ? (
                   <div style={{
@@ -82,7 +83,7 @@ export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
                         gap: '20px'
                       }}>
                         <div style={{
-                          fontSize: '3rem',
+                          fontSize: isMobile ? '2.5rem' : '3rem',
                           fontWeight: 'bold',
                           color: '#4f46e5',
                           marginBottom: '10px'
@@ -100,8 +101,8 @@ export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
                               key={idx}
                               onClick={() => onSendMessage(option, { type: "qcm_answer" })}
                               style={{
-                                padding: '15px 25px',
-                                fontSize: '1.2rem',
+                                padding: isMobile ? '8px 12px' : '15px 25px',
+                                fontSize: isMobile ? '0.9rem' : '1.2rem',
                                 background: '#f1f5f9',
                                 border: '3px solid #cbd5e1',
                                 borderRadius: '12px',
@@ -156,11 +157,12 @@ export const Experience = ({ state = "idle", boardContent, onSendMessage }) => {
                     )}
 
                     <div style={{
-                      fontSize: (boardContent.title || boardContent.description) ? "2.2rem" : "3rem",
+                      fontSize: isMobile ? "3.5rem" : ((boardContent.title || boardContent.description) ? "2.2rem" : "3rem"),
                       fontWeight: "bold",
                       color: "#1e293b",
                       whiteSpace: "pre-wrap",
-                      width: "100%"
+                      width: "100%",
+                      transform: isMobile ? 'scale(1.3)' : 'none'
                     }}>
                       {boardContent.equation && boardContent.equation.trim() !== '' ? (
                         (boardContent.equation.includes('$') || boardContent.equation.includes('\\')) ? (

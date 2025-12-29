@@ -15,6 +15,16 @@ function App() {
     isAudioPlaying
   } = useWelcomeManager();
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const [manualState, setManualState] = useState(null);
   const [boardContent, setBoardContent] = useState({
     title: "",
@@ -97,56 +107,69 @@ function App() {
       return;
     }
 
-    // Handle practice choice (equation with answers)
-    if (data?.type === "practice_choice" && data.equation) {
-      console.log("Practice choice with equation:", data.equation);
+    // Handle practice choice (using dynamic exercises from AI)
+    if (data?.type === "practice_choice") {
+      const exercises = data.exercises || [];
+      if (exercises.length > 0) {
+        const firstExercise = exercises[0];
+        setCurrentExercises(exercises);
+        setCurrentExerciseIndex(0);
+        setIsAnsweringExercise(true);
 
-      // Display equation on board with answer options
-      const equationData = {
-        type: "equation_quiz",
-        equation: data.equation.question,
-        options: data.equation.options,
-        correctAnswer: data.equation.correctAnswer
-      };
+        const equationData = {
+          type: "equation_quiz",
+          equation: firstExercise.problem,
+          options: firstExercise.options,
+          correctAnswer: firstExercise.correctAnswer
+        };
 
-      console.log("Setting board content:", equationData);
+        setBoardContent(prev => ({
+          ...prev,
+          equation: firstExercise.problem,
+          description: `Exercice 1/3 (${firstExercise.difficulty})`,
+          qcm: equationData
+        }));
 
-      setBoardContent(prev => ({
-        ...prev,
-        equation: data.equation.question,
-        description: "Trouvez la solution",
-        qcm: equationData
-      }));
+        setMessages(prev => [...prev, {
+          text: `C'est parti ! Voici le premier exercice (${firstExercise.difficulty}) : ${firstExercise.problem}. Répondez sur le tableau.`,
+          sender: "teacher"
+        }]);
 
-      setIsAnsweringExercise(true);
-      setMessages(prev => [...prev, {
-        text: "Résolvez l'équation affichée sur le tableau et choisissez la bonne réponse.",
-        sender: "teacher"
-      }]);
-
-      // Speak the equation
-      speakText(`Résolvez l'équation: ${data.equation.question}`, {
-        onStart: () => setManualState("talk"),
-        onEnd: () => setManualState(null)
-      });
+        speakText(`Résolvez cet exercice : ${firstExercise.problem.replace(/\$/g, '')}`, {
+          onStart: () => setManualState("talk"),
+          onEnd: () => setManualState(null)
+        });
+      }
       return;
     }
 
     // Handle next question request
-    if (data?.type === "next_question" && data.exercises && data.nextIndex !== undefined) {
-      if (msg === "yes") {
+    if (data?.type === "next_question") {
+      if (msg === "yes" && data.exercises && data.nextIndex !== undefined) {
         const nextExercise = data.exercises[data.nextIndex];
-        const cleanProblem = nextExercise.problem.replace(/\$\$/g, '').replace(/\$/g, '').trim();
-
         setCurrentExerciseIndex(data.nextIndex);
+        setIsAnsweringExercise(true);
+
+        const equationData = {
+          type: "equation_quiz",
+          equation: nextExercise.problem,
+          options: nextExercise.options,
+          correctAnswer: nextExercise.correctAnswer
+        };
+
+        setBoardContent(prev => ({
+          ...prev,
+          equation: nextExercise.problem,
+          description: `Exercice ${data.nextIndex + 1}/3 (${nextExercise.difficulty})`,
+          qcm: equationData
+        }));
 
         setMessages(prev => [...prev, {
-          text: `Question ${data.nextIndex + 1} (${nextExercise.difficulty}) :\n\n${cleanProblem}`,
+          text: `Voici l'exercice suivant (${nextExercise.difficulty}) : ${nextExercise.problem}.`,
           sender: "teacher"
         }]);
 
-
-        speakText(`Question suivante, niveau ${nextExercise.difficulty}: ${cleanProblem}`, {
+        speakText(`Exercice suivant : ${nextExercise.problem.replace(/\$/g, '')}`, {
           onStart: () => setManualState("talk"),
           onEnd: () => setManualState(null)
         });
@@ -157,6 +180,7 @@ function App() {
         }]);
         setIsAnsweringExercise(false);
         setCurrentExercises([]);
+        setBoardContent(prev => ({ ...prev, qcm: null, equation: "On va étudier quoi aujourd'hui ?" }));
       }
       return;
     }
@@ -371,14 +395,17 @@ function App() {
             onEnd: () => setManualState(null)
           });
 
-          // Offer to practice with an equation
-          setTimeout(() => {
-            setMessages(prev => [...prev, {
-              text: "Voulez-vous vous entraîner avec une équation ?",
-              sender: "teacher",
-              showPracticeButtons: true
-            }]);
-          }, 2000);
+          // Offer to practice with an equation (QCM)
+          if (response.exercises && response.exercises.length > 0) {
+            setTimeout(() => {
+              setMessages(prev => [...prev, {
+                text: "Voulez-vous vous entraîner avec quelques exercices QCM ?",
+                sender: "teacher",
+                showPracticeButtons: true,
+                exercisesData: response.exercises
+              }]);
+            }, 2000);
+          }
         }
 
       } catch (error) {
@@ -400,16 +427,20 @@ function App() {
         onEnableSound={handleEnableSound}
       />
 
-      <Canvas shadows camera={{ position: [0, 2, 7], fov: 30 }}>
+      <Canvas shadows camera={{
+        position: isMobile ? [0, 2, 10] : [0, 1.5, 5],
+        fov: isMobile ? 40 : 30
+      }}>
         <color attach="background" args={["#ececec"]} />
         <Experience
           state={currentState}
           boardContent={boardContent}
           onSendMessage={handleMessage}
+          isMobile={isMobile}
         />
       </Canvas>
 
-      <Interface messages={messages} onSendMessage={handleMessage} />
+      <Interface messages={messages} onSendMessage={handleMessage} isMobile={isMobile} />
     </div>
   );
 }

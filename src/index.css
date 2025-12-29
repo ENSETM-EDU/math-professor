@@ -94,7 +94,8 @@ canvas {
   overflow-y: auto;
   padding-right: 0.5rem;
   pointer-events: auto;
-  max-height: 35vh; /* Reduced to avoid covering the whiteboard */
+  max-height: 35vh;
+  /* Reduced to avoid covering the whiteboard */
 }
 
 .message {
@@ -213,6 +214,67 @@ canvas {
   transform: scale(0.95);
 }
 
+/* BUTTON UTILITIES */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-primary {
+  background: #4f46e5;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+}
+
+.btn-secondary {
+  background: #64748b;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #475569;
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
 /* Scrollbar */
 .messages-list::-webkit-scrollbar {
   width: 4px;
@@ -225,4 +287,71 @@ canvas {
 .messages-list::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.1);
   border-radius: 10px;
+}
+
+/* MOBILE RESPONSIVENESS */
+@media (max-width: 768px) {
+  .overlay {
+    padding: 1rem;
+  }
+
+  .header-card {
+    padding: 0.75rem 1rem;
+  }
+
+  .header-card h1 {
+    font-size: 1.2rem;
+  }
+
+  .header-card p {
+    font-size: 0.6rem;
+  }
+
+  .chat-container {
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .messages-list {
+    max-height: 25vh;
+  }
+
+  .message-box {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .input-container {
+    max-width: 100%;
+  }
+
+  .input-card {
+    padding: 0.25rem;
+    border-radius: 1.5rem;
+  }
+
+  .text-input {
+    font-size: 0.9rem;
+    padding: 0.5rem;
+  }
+
+  .send-btn {
+    padding: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-card {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .messages-list {
+    max-height: 20vh;
+  }
+
+  .icon-group {
+    padding: 0 0.25rem;
+  }
 }
